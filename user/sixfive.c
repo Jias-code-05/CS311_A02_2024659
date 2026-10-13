@@ -25,7 +25,12 @@ process(int fd)
             if (len > 0 && valid &&
                 (mod % 5 == 0 || mod % 6 == 0)) {
                 num[len] = '\0';
-                printf("%s\n", num);
+
+int start = 0;
+while (num[start] == '0' && num[start + 1] != '\0')
+    start++;
+
+printf("%s\n", num + start);
             }
 
             len = 0;
@@ -52,8 +57,13 @@ process(int fd)
 
     if (len > 0 && valid &&
         (mod % 5 == 0 || mod % 6 == 0)) {
-        num[len] = '\0';
-        printf("%s\n", num);
+     num[len] = '\0';
+
+int start = 0;
+while (num[start] == '0' && num[start + 1] != '\0')
+    start++;
+
+printf("%s\n", num + start);
     }
 
     return 0;
