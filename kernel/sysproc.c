@@ -6,6 +6,7 @@
 #include "spinlock.h"
 #include "proc.h"
 #include "vm.h"
+#include "syscall.h"
 
 uint64
 sys_exit(void)
@@ -109,4 +110,36 @@ sys_uptime(void)
   xticks = ticks;
   release(&tickslock);
   return xticks;
+}
+
+uint64
+sys_interpose(void)
+{
+    int mask;
+    char path[MAXPATH];
+    struct proc *p = myproc();
+
+    argint(0, &mask);
+
+    if (argstr(1, path, sizeof(path)) < 0)
+        return -1;
+
+    uint pathbits = (1U << SYS_open) |
+                    (1U << SYS_exec);
+
+    // Never weaken existing pathname restrictions.
+    if (p->syscall_mask & pathbits) {
+        if (strncmp(p->allowed_path, path, MAXPATH) != 0) {
+            safestrcpy(p->allowed_path, "-",
+                       sizeof(p->allowed_path));
+        }
+    } else {
+        safestrcpy(p->allowed_path, path,
+                   sizeof(p->allowed_path));
+    }
+
+    // Add restrictions instead of replacing them.
+    p->syscall_mask |= (uint)mask;
+
+    return 0;
 }

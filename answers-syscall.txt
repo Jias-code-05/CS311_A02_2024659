@@ -1,0 +1,106 @@
+CS311 Operating Systems
+Assignment 02 - System Calls
+GDB Questions and Answers
+
+Q1. Which function called syscall()?
+
+Answer:
+The function usertrap() called syscall().
+The GDB backtrace showed:
+#0 syscall() at kernel/syscall.c:140
+#1 usertrap() at kernel/trap.c:68
+
+The usertrap() function handles traps from user space
+and invokes syscall() when a user program makes a
+system call.
+
+
+Q2. What is p->trapframe->a7?
+
+Answer:
+The observed value was 0xf (15 in decimal).
+
+This represents SYS_open, the system call number
+for opening a file.
+
+The a7 register stores the syscall number.
+The kernel uses this number to identify which
+system call handler to execute.
+
+
+Q3. What was the previous CPU privilege mode?
+
+Answer:
+The observed sstatus value was 0x200000022.
+
+The SPP bit (bit 8) was 0, indicating that
+the previous CPU privilege mode was User mode.
+
+The processor entered Supervisor mode to handle
+the system call.
+
+
+Q4. What instruction caused the kernel page fault?
+Which register corresponds to num?
+
+Answer:
+The faulting instruction address was 0x80001d0c.
+
+The assembly instruction was:
+
+80001d0c: lw a3,0(zero)
+
+The register corresponding to num was a3.
+
+The instruction attempts to load a 32-bit value
+from memory address zero into register a3.
+
+This instruction was confirmed using both
+kernel/kernel.asm and GDB's x/i $pc command.
+
+
+Q5. Why did the kernel crash?
+
+Answer:
+The crash occurred because the statement
+
+num = *(int *)0;
+
+attempted to dereference a null pointer.
+
+Virtual address zero is not mapped in the xv6
+kernel address space. Therefore, the attempted
+memory read caused a load page fault.
+
+The observed values were:
+
+scause = 0xd
+sepc   = 0x80001d0c
+stval  = 0x0
+
+scause 0xd indicates a load page fault.
+sepc identifies the faulting instruction.
+stval indicates the invalid address accessed.
+
+The kernel therefore entered its panic handler
+and printed "panic: kerneltrap".
+
+
+Q6. Which process was running when the kernel
+crashed? What was its PID?
+
+Answer:
+The process name was init.
+The process ID was 1.
+
+These values were confirmed using GDB:
+
+p p->name
+Result: "init"
+
+p p->pid
+Result: 1
+
+The init process was executing when the
+intentional invalid memory access occurred.
+EOF
